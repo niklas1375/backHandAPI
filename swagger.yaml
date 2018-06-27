@@ -1886,55 +1886,43 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /games/{ID}/tipps:
+  /seasons/{endYear}/gameday/{gameday}/games/{homeTeam}/tipps:
     get:
       tags:
         - Standard
+        - Game
         - Game Tipp
-      summary: gets all tipps for the specified game
+      summary: gets all season game tipps for the specified game
       description: >
-        Find all tipps for a game. It is possible to only get your own tipp by
-        providing the appropiate query option
-      operationId: getTippsForGame
+        Find all tipps for a season game. It is possible to only get your own
+        tipp by providing the appropiate query option
+      operationId: getSeasonGameTipps
       produces:
         - application/json
       parameters:
-        - name: ID
+        - name: endYear
           in: path
-          description: UID of game
+          description: end year of season
+          required: true
+          type: string
+        - name: gameday
+          in: path
+          description: gameday in the main round of the season
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify a game on this gameday
           required: true
           type: string
         - name: ownOnlyFlag
           in: query
-          description: filter for only your own tipp on this game
+          description: filter for only your own season tipp on this season
           required: false
           type: boolean
-        - name: skip
-          in: query
-          description: number of records to skip for pagination
-          required: false
-          type: integer
-          minimum: 0
-          format: int32
-        - name: limit
-          in: query
-          description: maximum number of records to return
-          required: false
-          type: integer
-          maximum: 50
-          minimum: 0
-          format: int32
-        - name: filter
-          in: query
-          description: >-
-            filter string (similar to OData convention but only simple
-            conditions)
-          required: false
-          type: string
-          maxLength: 140
       responses:
         '200':
-          description: array of tipp entities
+          description: array of game tipp entities
           schema:
             type: array
             items:
@@ -1944,29 +1932,40 @@ paths:
         '403':
           description: Not Authorized
         '404':
-          description: game not found / no tipps found
+          description: not found
     post:
       tags:
         - Standard
+        - Game
         - Game Tipp
-      summary: shortcut to create game tipp for this game
+      summary: create game tipp for this season game
       description: |
-        Create a single tipp for this game
-      operationId: createTippForGame
+        Create a single game tipp for this season game
+      operationId: createSeasonGameTipp
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
-        - name: ID
+        - name: endYear
           in: path
-          description: UID of game
+          description: end year of season
+          required: true
+          type: string
+        - name: gameday
+          in: path
+          description: gameday in the main round of the season
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify a game on this gameday
           required: true
           type: string
         - in: body
           name: tipp
-          description: Tipp info to add
-          required: false
+          description: Season Tipp info to add
+          required: true
           schema:
             $ref: '#/definitions/GameTipp'
       responses:
@@ -1979,27 +1978,87 @@ paths:
         '403':
           description: Not Authorized
         '404':
-          description: Game not found
+          description: not found
+  /seasons/{endYear}/gameday/{gameday}/games/{homeTeam}/tipps/{tipper}:
+    get:
+      tags:
+        - Standard
+        - Game
+        - Game Tipp
+      summary: gets single season game tipp 
+      description: |
+        By passing in the appropriate options, you can find a single season game tipp
+      operationId: getSeasonGameTipp
+      produces:
+        - application/json
+      parameters:
+        - name: endYear
+          in: path
+          description: end year of season
+          required: true
+          type: string
+        - name: gameday
+          in: path
+          description: gameday in the main round of the season
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify a game on this gameday
+          required: true
+          type: string
+        - name: tipper
+          in: path
+          description: tipper ID to identify single tipp
+          required: true
+          type: string
+      responses:
+        '200':
+          description: single season tipp entity
+          schema:
+            $ref: '#/definitions/GameTipp'
+        '400':
+          description: bad input parameter
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
     delete:
       tags:
         - Standard
+        - Game
         - Game Tipp
-      summary: deletes game tipp instance
-      description: Deletes Game Tipp
-      operationId: deleteGameTipp
+      summary: deletes season game tipp instance
+      description: Deletes Season Game Tipp
+      operationId: deleteSeasonGameTipp
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
-        - name: ID
+        - name: endYear
           in: path
-          description: UID of game tipp
+          description: end year of season
+          required: true
+          type: string
+        - name: gameday
+          in: path
+          description: gameday in the main round of the season
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify a game on this gameday
+          required: true
+          type: string
+        - name: tipper
+          in: path
+          description: tipper ID to identify single tipp
           required: true
           type: string
       responses:
         '204':
-          description: Game tipp deleted
+          description: Season game tipp deleted
         '400':
           description: invalid input
         '401':
@@ -2007,33 +2066,49 @@ paths:
         '403':
           description: Not Authorized
         '404':
-          description: game tipp not found
+          description: not found
     patch:
       tags:
         - Standard
+        - Game
         - Game Tipp
-      summary: updates game tipp info
-      description: Updates Game info
-      operationId: updateGameTipp
+      summary: updates season game tipp info
+      description: Updates Season Game Tipp info
+      operationId: updateSeasonGameTipp
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
-        - name: ID
+        - name: endYear
           in: path
-          description: UID of game tipp
+          description: end year of season
+          required: true
+          type: string
+        - name: gameday
+          in: path
+          description: gameday in the main round of the season
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify a game on this gameday
+          required: true
+          type: string
+        - name: tipper
+          in: path
+          description: tipper ID to identify single tipp
           required: true
           type: string
         - in: body
           name: tipp
-          description: Tipp entity to be updated
-          required: false
+          description: Game tipp entity to be updated
+          required: true
           schema:
             $ref: '#/definitions/GameTipp'
       responses:
         '204':
-          description: game tipp updated
+          description: season updated
         '400':
           description: 'invalid input, object invalid'
         '401':
@@ -2041,22 +2116,33 @@ paths:
         '403':
           description: Not Authorized
         '404':
-          description: game not found
-  /games/{ID}/result:
+          description: not found
+  /seasons/{endYear}/gameday/{gameday}/games/{homeTeam}/result:
     get:
       tags:
         - Standard
         - Game Result
+        - Game
       summary: gets all tipps for the specified game
       description: |
         Get result for a game.
-      operationId: getResultForGame
+      operationId: getSeasonGameResult
       produces:
         - application/json
       parameters:
-        - name: ID
+        - name: endYear
           in: path
-          description: UID of game
+          description: end year of season
+          required: true
+          type: string
+        - name: gameday
+          in: path
+          description: gameday in the main round of the season
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify a game on this gameday
           required: true
           type: string
       responses:
@@ -2074,24 +2160,35 @@ paths:
       tags:
         - Admin only
         - Game Result
-      summary: shortcut to create result for this game
+        - Game
+      summary: create result for this game
       description: |
         Create a single result for this game
-      operationId: createResultForGame
+      operationId: createSeasonGameResult
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
-        - name: ID
+        - name: endYear
           in: path
-          description: UID of game
+          description: end year of season
+          required: true
+          type: string
+        - name: gameday
+          in: path
+          description: gameday in the main round of the season
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify a game on this gameday
           required: true
           type: string
         - in: body
           name: result
           description: Tipp info to add
-          required: false
+          required: true
           schema:
             $ref: '#/definitions/GameResult'
       responses:
@@ -2107,6 +2204,90 @@ paths:
           description: Not Authorized
         '404':
           description: Game not found
+    delete:
+      tags:
+        - Standard
+        - Game
+        - Game Result
+      summary: deletes season game result instance
+      description: Deletes Season Game Result
+      operationId: deleteSeasonGameResult
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: endYear
+          in: path
+          description: end year of season
+          required: true
+          type: string
+        - name: gameday
+          in: path
+          description: gameday in the main round of the season
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify a game on this gameday
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Season Game result deleted
+        '400':
+          description: invalid input
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    patch:
+      tags:
+        - Standard
+        - Playoff Game
+        - Game Result
+      summary: updates playoff game result info
+      description: Updates Season Game Result
+      operationId: updateSeasonGameResult
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: endYear
+          in: path
+          description: end year of season
+          required: true
+          type: string
+        - name: gameday
+          in: path
+          description: gameday in the main round of the season
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify a game on this gameday
+          required: true
+          type: string
+        - in: body
+          name: result
+          description: Season result entity to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/GameResult'
+      responses:
+        '204':
+          description: season game result updated
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
 definitions:
   Game:
     required:
