@@ -1,0 +1,1449 @@
+---
+swagger: "2.0"
+info:
+  description: This is a simple API
+  version: 1.0.0
+  title: Back(H)and API
+  contact:
+    email: mail@example.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+host: virtserver.swaggerhub.com
+basePath: /Hockey-Tipp/Back_H_and/1.0.0
+tags:
+- name: Admin only
+  description: Secured Admin-only calls
+- name: Standard
+  description: Operations available to everyone
+- name: Game
+  description: Operations touching games
+- name: Game Tipp
+  description: Operations touching game tipps
+- name: Game Result
+  description: Operations touching game results
+- name: Season
+  description: Operations touching seasons
+- name: Season Tipp
+  description: Operations touching season tipps
+- name: Season Result
+  description: Operations touching season results
+- name: Playoff Series
+  description: Operations touching playoff series
+schemes:
+- https
+paths:
+  /login:
+    post:
+      tags:
+      - Standard
+      summary: path to login on API
+      description: |
+        Post to this path to authenticate yourself at the API. You will receive a JWT Token you can use to authenticate yourself for future use in this session.
+      operationId: login
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: authStuff
+        description: auth stuff tbd --> Basic Auth, OAuth, ...?
+        required: true
+        schema:
+          $ref: '#/definitions/AuthReq'
+      responses:
+        200:
+          description: Authentication OK
+          schema:
+            $ref: '#/definitions/AuthRes'
+        400:
+          description: Bad request
+        403:
+          description: Not Authorized
+  /games/{ID}:
+    get:
+      tags:
+      - Standard
+      - Game
+      summary: gets single game by ID
+      description: |
+        By passing in the appropriate options, you can find a single game
+      operationId: getGameById
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of game
+        required: true
+        type: string
+      responses:
+        200:
+          description: single game entity
+          schema:
+            $ref: '#/definitions/Game'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: game not found
+    delete:
+      tags:
+      - Admin only
+      - Game
+      summary: deletes game instance
+      description: Deletes Game
+      operationId: deleteGame
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of game
+        required: true
+        type: string
+      responses:
+        204:
+          description: Game deleted
+        400:
+          description: invalid input
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: game not found
+    patch:
+      tags:
+      - Admin only
+      - Game
+      summary: updates game info
+      description: Updates Game info
+      operationId: updateGame
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of game
+        required: true
+        type: string
+      - in: body
+        name: game
+        description: Inventory item to add
+        required: false
+        schema:
+          $ref: '#/definitions/Game'
+      responses:
+        204:
+          description: game updated
+        400:
+          description: invalid input, object invalid
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: game not found
+  /games:
+    get:
+      tags:
+      - Standard
+      - Game
+      summary: get all games
+      description: |
+        Gets all games. Filters and limiting can be applied through described GET paramaters. Standard filters such as current season may be applied when no filter is given.
+      operationId: getGames
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: skip
+        in: query
+        description: number of records to skip for pagination
+        required: false
+        type: integer
+        minimum: 0
+        format: int32
+      - name: limit
+        in: query
+        description: maximum number of records to return
+        required: false
+        type: integer
+        maximum: 50.0
+        minimum: 0
+        format: int32
+      - name: filter
+        in: query
+        description: filter string (similar to OData convention but only simple conditions)
+        required: false
+        type: string
+        maxLength: 140
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Game'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+    post:
+      tags:
+      - Admin only
+      - Game
+      summary: create new game
+      description: |
+        Endpoint to create games. Protected and only available to admins. ID will be omitted and created dynamically during DB entity creation.
+      operationId: createGame
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: games
+        description: Game info to add
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/Game'
+      responses:
+        201:
+          description: game created
+          schema:
+            $ref: '#/definitions/Game'
+        400:
+          description: invalid input, object invalid
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+  /games/{ID}/tipps:
+    get:
+      tags:
+      - Standard
+      - Game Tipp
+      summary: gets all tipps for the specified game
+      description: |
+        Find all tipps for a game. It is possible to only get your own tipp by providing the appropiate query option
+      operationId: getTippsForGame
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of game
+        required: true
+        type: string
+      - name: ownOnlyFlag
+        in: query
+        description: filter for only your own tipp on this game
+        required: false
+        type: boolean
+      - name: skip
+        in: query
+        description: number of records to skip for pagination
+        required: false
+        type: integer
+        minimum: 0
+        format: int32
+      - name: limit
+        in: query
+        description: maximum number of records to return
+        required: false
+        type: integer
+        maximum: 50.0
+        minimum: 0
+        format: int32
+      - name: filter
+        in: query
+        description: filter string (similar to OData convention but only simple conditions)
+        required: false
+        type: string
+        maxLength: 140
+      responses:
+        200:
+          description: array of tipp entities
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/GameTipp'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: game not found / no tipps found
+    post:
+      tags:
+      - Standard
+      - Game Tipp
+      summary: shortcut to create game tipp for this game
+      description: |
+        Create a single tipp for this game
+      operationId: createTippForGame
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of game
+        required: true
+        type: string
+      - in: body
+        name: tipp
+        description: Tipp info to add
+        required: false
+        schema:
+          $ref: '#/definitions/GameTipp'
+      responses:
+        201:
+          description: Created successfully
+          schema:
+            $ref: '#/definitions/GameTipp'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: Game not found
+    delete:
+      tags:
+      - Standard
+      - Game Tipp
+      summary: deletes game tipp instance
+      description: Deletes Game Tipp
+      operationId: deleteGameTipp
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of game tipp
+        required: true
+        type: string
+      responses:
+        204:
+          description: Game tipp deleted
+        400:
+          description: invalid input
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: game tipp not found
+    patch:
+      tags:
+      - Standard
+      - Game Tipp
+      summary: updates game tipp info
+      description: Updates Game info
+      operationId: updateGameTipp
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of game tipp
+        required: true
+        type: string
+      - in: body
+        name: tipp
+        description: Tipp entity to be updated
+        required: false
+        schema:
+          $ref: '#/definitions/GameTipp'
+      responses:
+        204:
+          description: game tipp updated
+        400:
+          description: invalid input, object invalid
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: game not found
+  /games/{ID}/result:
+    get:
+      tags:
+      - Standard
+      - Game Result
+      summary: gets all tipps for the specified game
+      description: |
+        Get result for a game.
+      operationId: getResultForGame
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of game
+        required: true
+        type: string
+      responses:
+        200:
+          description: single result entity
+          schema:
+            $ref: '#/definitions/GameResult'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: game not found / no result found
+    post:
+      tags:
+      - Admin only
+      - Game Result
+      summary: shortcut to create result for this game
+      description: |
+        Create a single result for this game
+      operationId: createResultForGame
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of game
+        required: true
+        type: string
+      - in: body
+        name: result
+        description: Tipp info to add
+        required: false
+        schema:
+          $ref: '#/definitions/GameResult'
+      responses:
+        201:
+          description: Created successfully
+          schema:
+            $ref: '#/definitions/GameResult'
+        400:
+          description: bad input parameter
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: Game not found
+  /seasons:
+    get:
+      tags:
+      - Standard
+      - Season
+      summary: get all seasons
+      description: |
+        Gets all seasons. Filters and limiting can be applied through described GET paramaters. Standard filters such as current season or gameday may be applied when no filter is given.
+      operationId: getSeasons
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: skip
+        in: query
+        description: number of records to skip for pagination
+        required: false
+        type: integer
+        minimum: 0
+        format: int32
+      - name: limit
+        in: query
+        description: maximum number of records to return
+        required: false
+        type: integer
+        maximum: 50.0
+        minimum: 0
+        format: int32
+      - name: filter
+        in: query
+        description: filter string (similar to OData convention but only simple conditions)
+        required: false
+        type: string
+        maxLength: 140
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Season'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+    post:
+      tags:
+      - Admin only
+      - Season
+      summary: create new season
+      description: |
+        Endpoint to create seasons. Protected and only available to admins.
+      operationId: createSeason
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: seasons
+        description: Season info to add
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/Season'
+      responses:
+        201:
+          description: season created
+          schema:
+            $ref: '#/definitions/Season'
+        400:
+          description: invalid input, object invalid
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+  /seasons/{endYear}:
+    get:
+      tags:
+      - Standard
+      - Season
+      summary: gets single season by end year
+      description: |
+        By passing in the appropriate options, you can find a single season
+      operationId: getSeasonByEndYear
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      responses:
+        200:
+          description: single season entity
+          schema:
+            $ref: '#/definitions/Season'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: game not found
+    delete:
+      tags:
+      - Admin only
+      - Season
+      summary: deletes season instance
+      description: Deletes Season
+      operationId: deleteSeason
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      responses:
+        204:
+          description: Season deleted
+        400:
+          description: invalid input
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: Season not found
+    patch:
+      tags:
+      - Admin only
+      - Season
+      summary: updates season info
+      description: Updates Season info
+      operationId: updateSeason
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      - in: body
+        name: season
+        description: Season entity to be updated
+        required: false
+        schema:
+          $ref: '#/definitions/Season'
+      responses:
+        204:
+          description: season updated
+        400:
+          description: invalid input, object invalid
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: season not found
+  /seasons/{endYear}/seasonTipps:
+    get:
+      tags:
+      - Standard
+      - Season
+      - Season Tipp
+      summary: gets all season tipps for the specified season
+      description: |
+        Find all season tipps for a season. It is possible to only get your own tipp by providing the appropiate query option
+      operationId: getSeasonTippsForSeason
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      - name: ownOnlyFlag
+        in: query
+        description: filter for only your own season tipp on this season
+        required: false
+        type: boolean
+      responses:
+        200:
+          description: array of season tipp entities
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SeasonTipp'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: season not found / no season tipps found
+    post:
+      tags:
+      - Standard
+      - Season
+      - Season Tipp
+      summary: shortcut to create season tipp for this season
+      description: |
+        Create a single season tipp for this season
+      operationId: createSeasonTippForSeason
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      - in: body
+        name: tipp
+        description: Season Tipp info to add
+        required: false
+        schema:
+          $ref: '#/definitions/SeasonTipp'
+      responses:
+        201:
+          description: Created successfully
+          schema:
+            $ref: '#/definitions/SeasonTipp'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: season not found
+  /seasons/{endYear}/seasonResult:
+    get:
+      tags:
+      - Standard
+      - Season
+      - Season Result
+      summary: gets the season result for the specified season
+      description: "Find the season result for a season. \n"
+      operationId: getSeasonResultForSeason
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      responses:
+        200:
+          description: single season result entity
+          schema:
+            $ref: '#/definitions/SeasonResult'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: season not found / no season result found
+    post:
+      tags:
+      - Admin only
+      - Season
+      - Season Result
+      summary: shortcut to create season result for this season
+      description: |
+        Create a single season result for this season
+      operationId: createSeasonResultForSeason
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      - in: body
+        name: result
+        description: Season result info to add
+        required: false
+        schema:
+          $ref: '#/definitions/SeasonResult'
+      responses:
+        201:
+          description: Created successfully
+          schema:
+            $ref: '#/definitions/SeasonResult'
+        400:
+          description: bad input parameter
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: season not found
+  /seasons/{endYear}/games:
+    get:
+      tags:
+      - Standard
+      - Season
+      - Game
+      summary: gets the games for the specified season
+      description: "Find the games for a season. \n"
+      operationId: getGamesForSeason
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      responses:
+        200:
+          description: array of game entities
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Game'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: season not found / no games found
+    post:
+      tags:
+      - Admin only
+      - Season
+      - Game
+      summary: shortcut to create game for this season
+      description: |
+        Create a single game for this season
+      operationId: createGameForSeason
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      - in: body
+        name: game
+        description: Game info to add
+        required: false
+        schema:
+          $ref: '#/definitions/Game'
+      responses:
+        201:
+          description: Created successfully
+          schema:
+            $ref: '#/definitions/Game'
+        400:
+          description: bad input parameter
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: season not found
+  /seasons/{endYear}/playoffSeries:
+    get:
+      tags:
+      - Standard
+      - Playoff Series
+      - Season
+      summary: gets the playoff series for the specified season
+      description: "Find the playoff series for a season. \n"
+      operationId: getPlayoffSeriesForSeason
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      responses:
+        200:
+          description: array of playoff series entities
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PlayoffSeries'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: season not found / no playoff series found
+    post:
+      tags:
+      - Admin only
+      - Season
+      - Playoff Series
+      summary: shortcut to create a playoff series for this season
+      description: |
+        Create a single playoff series for this season
+      operationId: createPlayoffSeriesForSeason
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: endYear
+        in: path
+        description: end year of season
+        required: true
+        type: string
+      - in: body
+        name: series
+        description: plyaoff series info to add
+        required: false
+        schema:
+          $ref: '#/definitions/PlayoffSeries'
+      responses:
+        201:
+          description: Created successfully
+          schema:
+            $ref: '#/definitions/PlayoffSeries'
+        400:
+          description: bad input parameter
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: season not found
+  /playoffSeries:
+    get:
+      tags:
+      - Standard
+      - Playoff Series
+      summary: get all playoffSeries
+      description: |
+        Gets all playoff series. Filters and limiting can be applied through described GET paramaters. Standard filters such as current season or gameday may be applied when no filter is given.
+      operationId: getPlayoffSeries
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: skip
+        in: query
+        description: number of records to skip for pagination
+        required: false
+        type: integer
+        minimum: 0
+        format: int32
+      - name: limit
+        in: query
+        description: maximum number of records to return
+        required: false
+        type: integer
+        maximum: 50.0
+        minimum: 0
+        format: int32
+      - name: filter
+        in: query
+        description: filter string (similar to OData convention but only simple conditions)
+        required: false
+        type: string
+        maxLength: 140
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PlayoffSeries'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+    post:
+      tags:
+      - Playoff Series
+      - Admin only
+      summary: create new playoff series
+      description: |
+        Endpoint to create playoff series. Protected and only available to admins.
+      operationId: createPlayoffSeries
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: seasons
+        description: PLayoff series info to add
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/PlayoffSeries'
+      responses:
+        201:
+          description: playoff series created
+          schema:
+            $ref: '#/definitions/PlayoffSeries'
+        400:
+          description: invalid input, object invalid
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+  /playoffSeries({ID}):
+    get:
+      tags:
+      - Standard
+      - Playoff Series
+      summary: gets single playoff series by ID
+      description: |
+        By passing in the appropriate options, you can find a single playoff series
+      operationId: getPlayoffSeriesById
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of playoff series
+        required: true
+        type: string
+      responses:
+        200:
+          description: single playoff series entity
+          schema:
+            $ref: '#/definitions/PlayoffSeries'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: playoff series not found
+    delete:
+      tags:
+      - Playoff Series
+      - Admin only
+      summary: deletes plyaoff series instance
+      description: Deletes playoff series
+      operationId: deletePlayoffSeries
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of playoff series
+        required: true
+        type: string
+      responses:
+        204:
+          description: Playoff series deleted
+        400:
+          description: invalid input
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: Playoff series not found
+    patch:
+      tags:
+      - Admin only
+      - Playoff Series
+      summary: updates playoff series info
+      description: Updates Playoff Series info
+      operationId: updatePlayoffSeries
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of playoff series
+        required: true
+        type: string
+      - in: body
+        name: season
+        description: Playoff series entity to be updated
+        required: false
+        schema:
+          $ref: '#/definitions/PlayoffSeries'
+      responses:
+        204:
+          description: playoff series updated
+        400:
+          description: invalid input, object invalid
+        401:
+          description: Forbidden
+        403:
+          description: Not Authorized
+        404:
+          description: playoff series not found
+  /playoffSeries({ID})/games:
+    get:
+      tags:
+      - Standard
+      - Playoff Series
+      - Game
+      summary: gets the games for the specified playoff series
+      description: "Find the games for a playoff series. \n"
+      operationId: getGamesForPlayoffSeries
+      produces:
+      - application/json
+      parameters:
+      - name: ID
+        in: path
+        description: UID of playoff series
+        required: true
+        type: string
+      responses:
+        200:
+          description: array of game entities
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Game'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: playoff series not found / no games found
+definitions:
+  Game:
+    required:
+    - puckdrop
+    - season
+    properties:
+      id:
+        $ref: '#/definitions/GameId'
+      season:
+        $ref: '#/definitions/SeasonYear'
+      puckdrop:
+        $ref: '#/definitions/Timestamp'
+      gameday:
+        type: integer
+        example: 34
+        minimum: 1
+        maximum: 52
+      home:
+        $ref: '#/definitions/TeamId'
+      away:
+        $ref: '#/definitions/TeamId'
+      playoffFlag:
+        type: boolean
+        example: false
+      adlerFlag:
+        type: boolean
+        example: true
+      _self:
+        $ref: '#/definitions/selfURL'
+    example:
+      playoffFlag: false
+      puckdrop: 2018-08-29T09:12:33.001Z
+      away: MAN
+      adlerFlag: true
+      season: "2019"
+      id: d290f1ee-6c54-4b01-90e6-d701748f0851
+      _self: https://api.example.com/season(2018)
+      gameday: 34
+      home: MAN
+  GameResult:
+    required:
+    - game
+    properties:
+      game:
+        $ref: '#/definitions/GameId'
+      home:
+        type: integer
+        example: 4
+        minimum: 0
+      away:
+        type: integer
+        example: 1
+        minimum: 0
+      gameEnd:
+        type: string
+        enum:
+        - REG
+        - EXT
+        - PEN
+      _self:
+        $ref: '#/definitions/selfURL'
+    example:
+      game: d290f1ee-6c54-4b01-90e6-d701748f0851
+      away: 1
+      _self: https://api.example.com/season(2018)
+      home: 4
+      gameEnd: REG
+  GameTipp:
+    required:
+    - game
+    - tipper
+    properties:
+      game:
+        $ref: '#/definitions/GameId'
+      tipper:
+        $ref: '#/definitions/TipperId'
+      home:
+        type: integer
+        example: 4
+        minimum: 0
+      away:
+        type: integer
+        example: 1
+        minimum: 0
+      gameEnd:
+        type: string
+        enum:
+        - REG
+        - EXT
+        - PEN
+      savedAt:
+        $ref: '#/definitions/Timestamp'
+      comment:
+        type: string
+        maxLength: 140
+      _self:
+        $ref: '#/definitions/selfURL'
+    example:
+      game: d290f1ee-6c54-4b01-90e6-d701748f0851
+      away: 1
+      savedAt: 2018-08-29T09:12:33.001Z
+      comment: comment
+      _self: https://api.example.com/season(2018)
+      tipper: mettler1938
+      home: 4
+      gameEnd: REG
+  Season:
+    required:
+    - endYear
+    properties:
+      endYear:
+        $ref: '#/definitions/SeasonYear'
+      startDate:
+        $ref: '#/definitions/Date'
+      mainRoundEnd:
+        $ref: '#/definitions/Date'
+      _self:
+        $ref: '#/definitions/selfURL'
+    example:
+      _self: https://api.example.com/season(2018)
+      endYear: "2019"
+      startDate: 2018-06-01
+      mainRoundEnd: 2018-06-01
+  SeasonResult:
+    required:
+    - champion
+    - season
+    properties:
+      season:
+        $ref: '#/definitions/SeasonYear'
+      champion:
+        $ref: '#/definitions/TeamId'
+      mainRound:
+        $ref: '#/definitions/TeamId'
+      adlerFinish:
+        type: integer
+        example: 1
+      adlerScore:
+        type: integer
+        example: 101
+      adlerWLratio:
+        type: number
+        example: 75%
+      _self:
+        $ref: '#/definitions/selfURL'
+    example:
+      adlerScore: 101
+      mainRound: MAN
+      season: "2019"
+      adlerWLratio: 75%
+      adlerFinish: 1
+      _self: https://api.example.com/season(2018)
+      champion: MAN
+  SeasonTipp:
+    required:
+    - season
+    - tipper
+    properties:
+      tipper:
+        $ref: '#/definitions/TipperId'
+      season:
+        $ref: '#/definitions/SeasonYear'
+      champion:
+        $ref: '#/definitions/TeamId'
+      mainRound:
+        $ref: '#/definitions/TeamId'
+      adlerFinish:
+        type: integer
+        example: 1
+      adlerScore:
+        type: integer
+        example: 101
+      adlerWLratio:
+        type: number
+        example: 76%
+      savedAt:
+        $ref: '#/definitions/Timestamp'
+      _self:
+        $ref: '#/definitions/selfURL'
+    example:
+      adlerScore: 101
+      mainRound: MAN
+      season: "2019"
+      adlerWLratio: 76%
+      savedAt: 2018-08-29T09:12:33.001Z
+      adlerFinish: 1
+      _self: https://api.example.com/season(2018)
+      tipper: mettler1938
+      champion: MAN
+  PlayoffSeries:
+    required:
+    - round
+    - season
+    properties:
+      id:
+        $ref: '#/definitions/PlayoffSeriesId'
+      season:
+        $ref: '#/definitions/SeasonYear'
+      round:
+        type: string
+        example: SF
+        enum:
+        - PP
+        - QF
+        - SF
+        - FF
+      home:
+        $ref: '#/definitions/TeamId'
+      away:
+        $ref: '#/definitions/TeamId'
+      puckdrop:
+        $ref: '#/definitions/Timestamp'
+      _self:
+        $ref: '#/definitions/selfURL'
+    example:
+      away: MAN
+      puckdrop: 2018-08-29T09:12:33.001Z
+      round: SF
+      season: "2019"
+      id: d290f1ee-6c54-4b01-90e6-d701748f0851
+      _self: https://api.example.com/season(2018)
+      home: MAN
+  PlayoffTipp:
+    required:
+    - series
+    - tipper
+    properties:
+      series:
+        $ref: '#/definitions/PlayoffSeriesId'
+      tipper:
+        $ref: '#/definitions/TipperId'
+      home:
+        type: integer
+        example: 4
+        minimum: 0
+        maximum: 4
+      away:
+        type: integer
+        example: 1
+        minimum: 0
+        maximum: 4
+      savedAt:
+        $ref: '#/definitions/Timestamp'
+      _self:
+        $ref: '#/definitions/selfURL'
+  SeriesResult:
+    required:
+    - series
+    properties:
+      series:
+        $ref: '#/definitions/PlayoffSeriesId'
+      home:
+        type: integer
+        example: 4
+        minimum: 0
+        maximum: 4
+      away:
+        type: integer
+        example: 1
+        minimum: 0
+        maximum: 4
+      _self:
+        $ref: '#/definitions/selfURL'
+  PlayoffGame:
+    properties:
+      series:
+        $ref: '#/definitions/PlayoffSeriesId'
+      game:
+        $ref: '#/definitions/GameId'
+      _self:
+        $ref: '#/definitions/selfURL'
+  Admin:
+    required:
+    - from
+    - id
+    properties:
+      id:
+        $ref: '#/definitions/TipperId'
+      from:
+        $ref: '#/definitions/Date'
+      to:
+        $ref: '#/definitions/Date'
+      _self:
+        $ref: '#/definitions/selfURL'
+  Tipper:
+    required:
+    - id
+    - name
+    properties:
+      id:
+        $ref: '#/definitions/TipperId'
+      name:
+        type: string
+        example: Yannick
+        maxLength: 100
+      _self:
+        $ref: '#/definitions/selfURL'
+  Team:
+    required:
+    - fullName
+    - id
+    properties:
+      id:
+        $ref: '#/definitions/TeamId'
+      fullName:
+        type: string
+        example: Adler Mannheim
+        maxLength: 50
+      home:
+        type: string
+        example: SAP Arena
+        maxLength: 100
+      bunchOfWankersFlag:
+        type: boolean
+        example: false
+      _self:
+        $ref: '#/definitions/selfURL'
+  AuthReq:
+    properties:
+      authStuff:
+        type: string
+    example:
+      authStuff: authStuff
+  AuthRes:
+    properties:
+      jwtToken:
+        type: string
+    example:
+      jwtToken: jwtToken
+  SeasonYear:
+    type: integer
+    example: "2019"
+  TipperId:
+    type: string
+    example: mettler1938
+  TeamId:
+    type: string
+    example: MAN
+  GameId:
+    type: string
+    format: uuid
+    example: d290f1ee-6c54-4b01-90e6-d701748f0851
+  PlayoffSeriesId:
+    type: string
+    format: uuid
+    example: d290f1ee-6c54-4b01-90e6-d701748f0851
+  Date:
+    type: string
+    format: date
+    example: 2018-06-01
+  Timestamp:
+    type: string
+    format: date-time
+    description: Time the tipp was saved - relevant for evaluation of eligibility
+    example: 2018-08-29T09:12:33.001Z
+  selfURL:
+    type: string
+    format: url
+    description: URL pointing to self to make resolution of sub paths possible
+    example: https://api.example.com/season(2018)
