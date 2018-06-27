@@ -8,7 +8,7 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-host: virtserver.swaggerhub.com
+host: api.example.com
 basePath: /Hockey-Tipp/Back_H_and/1.0.0
 tags:
   - name: Admin only
@@ -62,6 +62,517 @@ paths:
           description: Bad request
         '403':
           description: Not Authorized
+  /tippers:
+    get:
+      tags:
+        - Standard
+        - Tippers
+      summary: get all tippers
+      description: |
+        Gets all tippers. Filters and limiting can be applied through described GET paramaters. When providing the ownOnlyFlag option in the query only the own account will be returned
+      operationId: getTippers
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: skip
+          in: query
+          description: number of records to skip for pagination
+          required: false
+          type: integer
+          minimum: 0
+          format: int32
+        - name: limit
+          in: query
+          description: maximum number of records to return
+          required: false
+          type: integer
+          maximum: 50
+          minimum: 0
+          format: int32
+        - name: filter
+          in: query
+          description: >-
+            filter string (similar to OData convention but only simple conditions)
+          required: false
+          type: string
+          maxLength: 140
+        - name: ownOnlyFlag
+          in: query
+          description: filter for only your own profile
+          required: false
+          type: boolean
+      responses:
+        '200':
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Tipper'
+        '400':
+          description: bad input parameter
+        '403':
+          description: Not Authorized
+    post:
+      tags:
+        - Admin only
+        - Tippers
+      summary: create new tipper
+      description: |
+        Endpoint to create tippers. Protected and only available to admins.
+      operationId: createTipper
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: tipper
+          description: tipper info to add
+          required: true
+          schema:
+            $ref: '#/definitions/Tipper'
+      responses:
+        '201':
+          description: season created
+          schema:
+            $ref: '#/definitions/Tipper'
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+  /tippers/{tipper}:
+    get:
+      tags:
+        - Standard
+        - Tippers
+      summary: gets single tipper by ID
+      description: |
+        By passing in the appropriate options, you can find a single tipper
+      operationId: getTipper
+      produces:
+        - application/json
+      parameters:
+        - name: tipper
+          in: path
+          description: tipper ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: single tipper entity
+          schema:
+            $ref: '#/definitions/Tipper'
+        '400':
+          description: bad input parameter
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    delete:
+      tags:
+        - Standard
+        - Tippers
+      summary: deletes tipper instance
+      description: |
+        Deletes Tipper. Only admins and oneself can delete a tipper account 
+      operationId: deleteTipper
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: tipper
+          in: path
+          description: tipper ID
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Tipper deleted
+        '400':
+          description: invalid input
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    patch:
+      tags:
+        - Standard
+        - Tippers
+      summary: updates tipper info
+      description: |
+        Updates Tipper. Only admins and oneself can update a tipper account 
+      operationId: updateTipper
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: tipper
+          in: path
+          description: tipper ID
+          required: true
+          type: string
+        - in: body
+          name: tipper
+          description: tipper entity to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/Tipper'
+      responses:
+        '204':
+          description: tipper updated
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+  /admins:
+    get:
+      tags:
+        - Standard
+        - Admins
+      summary: get all admins
+      description: |
+        Gets all admins. Filters and limiting can be applied through described GET paramaters.
+      operationId: getAdmins
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: skip
+          in: query
+          description: number of records to skip for pagination
+          required: false
+          type: integer
+          minimum: 0
+          format: int32
+        - name: limit
+          in: query
+          description: maximum number of records to return
+          required: false
+          type: integer
+          maximum: 50
+          minimum: 0
+          format: int32
+        - name: filter
+          in: query
+          description: >-
+            filter string (similar to OData convention but only simple conditions)
+          required: false
+          type: string
+          maxLength: 140
+      responses:
+        '200':
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Admin'
+        '400':
+          description: bad input parameter
+        '403':
+          description: Not Authorized
+    post:
+      tags:
+        - Admin only
+        - Admins
+      summary: create new admin
+      description: |
+        Endpoint to create admins. Protected and only available to admins.
+      operationId: createAdmin
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: admin
+          description: admin info to add
+          required: true
+          schema:
+            $ref: '#/definitions/Admin'
+      responses:
+        '201':
+          description: season created
+          schema:
+            $ref: '#/definitions/Admin'
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+  /admins/{tipper}:
+    get:
+      tags:
+        - Admin only
+        - Admins
+      summary: gets single admin by ID
+      description: |
+        By passing in the appropriate options, you can find a single admin
+      operationId: getAdmin
+      produces:
+        - application/json
+      parameters:
+        - name: tipper
+          in: path
+          description: tipper ID of admin
+          required: true
+          type: string
+      responses:
+        '200':
+          description: single admin entity
+          schema:
+            $ref: '#/definitions/Admin'
+        '400':
+          description: bad input parameter
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    delete:
+      tags:
+        - Admin only
+        - Admins
+      summary: deletes admin instance
+      description: |
+        Deletes Admin. 
+      operationId: deleteAdmin
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: tipper
+          in: path
+          description: tipper ID of admin
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Admin deleted
+        '400':
+          description: invalid input
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    patch:
+      tags:
+        - Admin only
+        - Admins
+      summary: updates admin info
+      description: |
+        Updates Admin.  
+      operationId: updateAdmin
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: tipper
+          in: path
+          description: tipper ID of admin
+          required: true
+          type: string
+        - in: body
+          name: admin
+          description: admin entity to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/Admin'
+      responses:
+        '204':
+          description: admin updated
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+  /teams:
+    get:
+      tags:
+        - Standard
+        - Teams
+      summary: get all teams
+      description: |
+        Gets all teams. Filters and limiting can be applied through described GET paramaters. 
+      operationId: getTeams
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: skip
+          in: query
+          description: number of records to skip for pagination
+          required: false
+          type: integer
+          minimum: 0
+          format: int32
+        - name: limit
+          in: query
+          description: maximum number of records to return
+          required: false
+          type: integer
+          maximum: 50
+          minimum: 0
+          format: int32
+        - name: filter
+          in: query
+          description: >-
+            filter string (similar to OData convention but only simple conditions)
+          required: false
+          type: string
+          maxLength: 140
+      responses:
+        '200':
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Team'
+        '400':
+          description: bad input parameter
+        '403':
+          description: Not Authorized
+    post:
+      tags:
+        - Admin only
+        - Teams
+      summary: create new team
+      description: |
+        Endpoint to create teams. Protected and only available to admins.
+      operationId: createTeam
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: team
+          description: team info to add
+          required: true
+          schema:
+            $ref: '#/definitions/Team'
+      responses:
+        '201':
+          description: team created
+          schema:
+            $ref: '#/definitions/Team'
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+  /teams/{team}:
+    get:
+      tags:
+        - Standard
+        - Teams
+      summary: gets single team by ID
+      description: |
+        By passing in the appropriate options, you can find a single team
+      operationId: getTeam
+      produces:
+        - application/json
+      parameters:
+        - name: team
+          in: path
+          description: team ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: single team entity
+          schema:
+            $ref: '#/definitions/Team'
+        '400':
+          description: bad input parameter
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    delete:
+      tags:
+        - Admin only
+        - Teams
+      summary: deletes team instance
+      description: |
+        Deletes Team. 
+      operationId: deleteTeam
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: team
+          in: path
+          description: team ID
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Team deleted
+        '400':
+          description: invalid input
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    patch:
+      tags:
+        - Admin only
+        - Teams
+      summary: updates team info
+      description: Updates Team. 
+      operationId: updateTeam
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: team
+          in: path
+          description: team ID
+          required: true
+          type: string
+        - in: body
+          name: tipper
+          description: tipper entity to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/Team'
+      responses:
+        '204':
+          description: team updated
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
   /seasons:
     get:
       tags:
@@ -118,7 +629,7 @@ paths:
         - Season
       summary: create new season
       description: |
-        Endpoint to create seasons. Protected and only available to admins.
+        Endpoint to create season. Protected and only available to admins.
       operationId: createSeason
       consumes:
         - application/json
@@ -126,13 +637,11 @@ paths:
         - application/json
       parameters:
         - in: body
-          name: seasons
+          name: season
           description: Season info to add
           required: true
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Season'
+            $ref: '#/definitions/Season'
       responses:
         '201':
           description: season created
@@ -777,6 +1286,177 @@ paths:
           description: Not Authorized
         '404':
           description: playoff series not found
+  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/result:
+    get:
+      tags:
+        - Standard
+        - Playoff Series
+        - Playoff Series Result
+      summary: gets the playoff series result
+      description: |
+        Find the result for a playoff series. 
+      operationId: getPlayoffSeriesResult
+      produces:
+        - application/json
+      parameters:
+        - name: endYear
+          in: path
+          description: end year of season
+          required: true
+          type: string
+        - name: round
+          in: path
+          description: playoff round (PP, QF, SF, FF)
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify playoff series
+          required: true
+          type: string
+      responses:
+        '200':
+          description: single playoff series result entity
+          schema:
+            $ref: '#/definitions/SeriesResult'
+        '400':
+          description: bad input parameter
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    post:
+      tags:
+        - Standard
+        - Playoff Series
+        - Playoff Series Result
+      summary: create result for this playoff series
+      description: |
+        Create a single result for this playoff series
+      operationId: createPlayoffSeriesResult
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: endYear
+          in: path
+          description: end year of season
+          required: true
+          type: string
+        - name: round
+          in: path
+          description: playoff round (PP, QF, SF, FF)
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify playoff series
+          required: true
+          type: string
+        - in: body
+          name: result
+          description: Playoff series result info to add
+          required: true
+          schema:
+            $ref: '#/definitions/SeriesResult'
+      responses:
+        '201':
+          description: Created successfully
+          schema:
+            $ref: '#/definitions/SeriesResult'
+        '400':
+          description: bad input parameter
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    delete:
+      tags:
+        - Standard
+        - Playoff Series
+        - Playoff Series Result
+      summary: deletes playoff series result instance
+      description: Deletes Playoff Series Result
+      operationId: deletePlayoffSeriesResult
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: endYear
+          in: path
+          description: end year of season
+          required: true
+          type: string
+        - name: round
+          in: path
+          description: playoff round (PP, QF, SF, FF)
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify playoff series
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Playoff Series result deleted
+        '400':
+          description: invalid input
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
+    patch:
+      tags:
+        - Standard
+        - Playoff Series
+        - Playoff Series Result
+      summary: updates playoff series result info
+      description: Updates Playoff Series Result
+      operationId: updatePlayoffSeriesResult
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: endYear
+          in: path
+          description: end year of season
+          required: true
+          type: string
+        - name: round
+          in: path
+          description: playoff round (PP, QF, SF, FF)
+          required: true
+          type: string
+        - name: homeTeam
+          in: path
+          description: home team to uniquely identify playoff series
+          required: true
+          type: string
+        - in: body
+          name: result
+          description: Season result entity to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/SeriesResult'
+      responses:
+        '204':
+          description: playoff series result updated
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          description: Forbidden
+        '403':
+          description: Not Authorized
+        '404':
+          description: not found
   /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/tipps:
     get:
       tags:
@@ -2319,11 +2999,11 @@ definitions:
         $ref: '#/definitions/selfURL'
     example:
       playoffFlag: false
-      puckdrop: 2018-08-29T09:12:33.001Z
+      puckdrop: '2018-08-29T09:12:33.001Z'
       away: MAN
       adlerFlag: true
       season: '2019'
-      id: d290f1ee-6c54-4b01-90e6-d701748f0851
+      id: 'd290f1ee-6c54-4b01-90e6-d701748f0851'
       _self: 'https://api.example.com/season(2018)'
       gameday: 34
       home: MAN
@@ -2350,7 +3030,7 @@ definitions:
       _self:
         $ref: '#/definitions/selfURL'
     example:
-      game: d290f1ee-6c54-4b01-90e6-d701748f0851
+      game: 'd290f1ee-6c54-4b01-90e6-d701748f0851'
       away: 1
       _self: 'https://api.example.com/season(2018)'
       home: 4
@@ -2549,14 +3229,6 @@ definitions:
         example: 1
         minimum: 0
         maximum: 4
-      _self:
-        $ref: '#/definitions/selfURL'
-  PlayoffGame:
-    properties:
-      series:
-        $ref: '#/definitions/PlayoffSeriesId'
-      game:
-        $ref: '#/definitions/GameId'
       _self:
         $ref: '#/definitions/selfURL'
   Admin:
