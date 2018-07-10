@@ -29,6 +29,20 @@ tags:
     description: Operations touching season results
   - name: Playoff Series
     description: Operations touching playoff series
+  - name: Tippers
+    description: Operations touching tippers
+  - name: Admins
+    description: Operations touching admins
+  - name: Playoff Series Result
+    description: Operations touching playoff series result
+  - name: Teams
+    description: Operations touching teams
+  - name: Playoff Game
+    description: Operations touching playoff games
+  - name: Playoff Series Tipp
+    description: Operations touching playoff series tipps
+  - name: Analysis
+    description: Operations giving different analysis options
 schemes:
   - https
 paths:
@@ -68,8 +82,10 @@ paths:
         - Standard
         - Tippers
       summary: get all tippers
-      description: |
-        Gets all tippers. Filters and limiting can be applied through described GET paramaters. When providing the ownOnlyFlag option in the query only the own account will be returned
+      description: >
+        Gets all tippers. Filters and limiting can be applied through described
+        GET paramaters. When providing the ownOnlyFlag option in the query only
+        the own account will be returned
       operationId: getTippers
       consumes:
         - application/json
@@ -94,13 +110,19 @@ paths:
         - name: filter
           in: query
           description: >-
-            filter string (similar to OData convention but only simple conditions)
+            filter string (similar to OData convention but only simple
+            conditions)
           required: false
           type: string
           maxLength: 140
-        - name: ownOnlyFlag
+        - name: ownOnly
           in: query
           description: filter for only your own profile
+          required: false
+          type: boolean
+        - name: includeInactive
+          in: query
+          description: include inactive tippers in selection
           required: false
           type: boolean
       responses:
@@ -242,8 +264,9 @@ paths:
         - Standard
         - Admins
       summary: get all admins
-      description: |
-        Gets all admins. Filters and limiting can be applied through described GET paramaters.
+      description: >
+        Gets all admins. Filters and limiting can be applied through described
+        GET paramaters.
       operationId: getAdmins
       consumes:
         - application/json
@@ -268,7 +291,8 @@ paths:
         - name: filter
           in: query
           description: >-
-            filter string (similar to OData convention but only simple conditions)
+            filter string (similar to OData convention but only simple
+            conditions)
           required: false
           type: string
           maxLength: 140
@@ -411,8 +435,9 @@ paths:
         - Standard
         - Teams
       summary: get all teams
-      description: |
-        Gets all teams. Filters and limiting can be applied through described GET paramaters. 
+      description: >
+        Gets all teams. Filters and limiting can be applied through described
+        GET paramaters. 
       operationId: getTeams
       consumes:
         - application/json
@@ -437,7 +462,8 @@ paths:
         - name: filter
           in: query
           description: >-
-            filter string (similar to OData convention but only simple conditions)
+            filter string (similar to OData convention but only simple
+            conditions)
           required: false
           type: string
           maxLength: 140
@@ -544,7 +570,7 @@ paths:
         - Admin only
         - Teams
       summary: updates team info
-      description: Updates Team. 
+      description: Updates Team.
       operationId: updateTeam
       consumes:
         - application/json
@@ -743,7 +769,7 @@ paths:
           description: Not Authorized
         '404':
           description: season not found
-  /seasons/{endYear}/tipps:
+  '/seasons/{endYear}/tipps':
     get:
       tags:
         - Standard
@@ -816,7 +842,7 @@ paths:
           description: Not Authorized
         '404':
           description: season not found
-  /seasons/{endYear}/tipps/{tipper}:
+  '/seasons/{endYear}/tipps/{tipper}':
     get:
       tags:
         - Standard
@@ -924,7 +950,7 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/result:
+  '/seasons/{endYear}/result':
     get:
       tags:
         - Standard
@@ -1055,7 +1081,88 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/playoffs:
+  /seasons/{endYear}/standings/{type}:
+    get:
+      tags:
+        - Analysis
+      summary: gets different season standings
+      description: |
+        Gets season standings of different types. 
+        Overall: Array including all currently available data. This includes main round points, playoff series points and playoff game points as well as the current bonus point situation. --> displays data as if the season would stop today.
+        Playoffs: Array containing all playoff points for all tippers 
+        Series Tipps: Array giving playoff series points standings for all tippers
+        Main Round: Array giving main round standings (points, jackpots, gameday victories, adler points, personal best gameday, missed tipps) for all tippers
+        Inactive tippers will not be included.
+      operationId: getOverallStandings
+      produces: 
+        - application/json
+      parameters:
+        - name: endYear
+          in: path
+          description: end year of season
+          required: true
+          type: string
+        - name: type
+          in: path
+          description: standings type (overall, playoffs, seriestipps, mainround)
+          required: true
+          type: string
+      responses:
+        200:
+          description: array of standings for all tippers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Standing'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: not found
+  /seasons/{endYear}/standings/{type}/tippers/{tipper}:
+    get:
+      tags:
+        - Analysis
+        - Season
+      summary: gets overall season standings for single tipper
+      description: |
+        Gets season standings of different types for specified tipper. 
+        Overall: Entity including all currently available data. This includes main round points, playoff series points and playoff game points as well as the current bonus point situation. --> displays data as if the season would stop today.
+        Playoffs: Entity containing all playoff points for this tipper 
+        Series Tipps: Entity giving playoff series points standings for this tipper
+        Main Round: Entity giving main round standings (points, jackpots, gameday victories, adler points, personal best gameday, missed tipps) for this tipper
+      operationId: getStandingForTipper
+      produces: 
+        - application/json
+      parameters:
+        - name: endYear
+          in: path
+          description: end year of season
+          required: true
+          type: string
+        - name: type
+          in: path
+          description: standings type (overall, playoffs, seriestipps, mainround)
+          required: true
+          type: string
+        - name: tipper
+          in: path
+          description: id of tipper
+          required: true
+          type: string
+      responses:
+        200:
+          description: standing for this tipper
+          schema:
+            $ref: '#/definitions/Standing'
+        400:
+          description: bad input parameter
+        403:
+          description: Not Authorized
+        404:
+          description: not found
+  '/seasons/{endYear}/playoffs':
     get:
       tags:
         - Standard
@@ -1086,15 +1193,15 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/playoffs/{round}/series:
+  '/seasons/{endYear}/playoffs/{round}/series':
     get:
       tags:
         - Standard
         - Playoff Series
       summary: gets all playoff series for this round
       description: >
-        By passing in the appropriate options, you can find all playoff
-        series for this round
+        By passing in the appropriate options, you can find all playoff series
+        for this round
       operationId: getPlayoffSeriesOfRound
       produces:
         - application/json
@@ -1106,7 +1213,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
       responses:
@@ -1143,7 +1250,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - in: body
@@ -1165,12 +1272,12 @@ paths:
           description: Not Authorized
         '404':
           description: season not found
-  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}:
+  '/seasons/{endYear}/playoffs/{round}/series/{homeTeam}':
     get:
       tags:
         - Standard
         - Playoff Series
-      summary: gets single playoff series 
+      summary: gets single playoff series
       description: >
         By passing in the appropriate options, you can find a single playoff
         series
@@ -1185,7 +1292,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1223,7 +1330,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1261,7 +1368,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1286,7 +1393,7 @@ paths:
           description: Not Authorized
         '404':
           description: playoff series not found
-  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/result:
+  '/seasons/{endYear}/playoffs/{round}/series/{homeTeam}/result':
     get:
       tags:
         - Standard
@@ -1306,7 +1413,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1346,7 +1453,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1393,7 +1500,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1432,7 +1539,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1457,7 +1564,7 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/tipps:
+  '/seasons/{endYear}/playoffs/{round}/series/{homeTeam}/tipps':
     get:
       tags:
         - Standard
@@ -1478,7 +1585,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1525,7 +1632,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1550,15 +1657,16 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/tipps/{tipper}:
+  '/seasons/{endYear}/playoffs/{round}/series/{homeTeam}/tipps/{tipper}':
     get:
       tags:
         - Standard
         - Playoff Series
         - Playoff Series Tipp
-      summary: gets single playoff series tipp 
-      description: |
-        By passing in the appropriate options, you can find a single playoff series tipp
+      summary: gets single playoff series tipp
+      description: >
+        By passing in the appropriate options, you can find a single playoff
+        series tipp
       operationId: getPlayoffSeriesTipp
       produces:
         - application/json
@@ -1570,7 +1678,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1614,7 +1722,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1658,7 +1766,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1688,7 +1796,7 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games:
+  '/seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games':
     get:
       tags:
         - Standard
@@ -1709,7 +1817,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1752,7 +1860,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1779,7 +1887,7 @@ paths:
           description: Not Authorized
         '404':
           description: season not found
-  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games/{number}:
+  '/seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games/{number}':
     get:
       tags:
         - Standard
@@ -1787,8 +1895,9 @@ paths:
         - Playoff Game
         - Game
       summary: gets single playoff game
-      description: |
-        By passing in the appropriate options, you can find a single playoff game
+      description: >
+        By passing in the appropriate options, you can find a single playoff
+        game
       operationId: getPlayoffGame
       produces:
         - application/json
@@ -1800,7 +1909,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1845,7 +1954,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1890,7 +1999,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1920,7 +2029,7 @@ paths:
           description: Not Authorized
         '404':
           description: game not found
-  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games/{number}/tipps:
+  '/seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games/{number}/tipps':
     get:
       tags:
         - Standard
@@ -1941,7 +2050,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -1993,7 +2102,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -2023,15 +2132,16 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games/{number}/tipps/{tipper}:
+  '/seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games/{number}/tipps/{tipper}':
     get:
       tags:
         - Standard
         - Playoff Game
         - Game Tipp
-      summary: gets single playoff game tipp 
-      description: |
-        By passing in the appropriate options, you can find a single playoff game tipp
+      summary: gets single playoff game tipp
+      description: >
+        By passing in the appropriate options, you can find a single playoff
+        game tipp
       operationId: getPlayoffGameTipp
       produces:
         - application/json
@@ -2043,7 +2153,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -2092,7 +2202,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -2141,7 +2251,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -2176,7 +2286,7 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games/{number}/result:
+  '/seasons/{endYear}/playoffs/{round}/series/{homeTeam}/games/{number}/result':
     get:
       tags:
         - Standard
@@ -2196,7 +2306,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -2241,7 +2351,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -2293,7 +2403,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -2337,7 +2447,7 @@ paths:
           type: string
         - name: round
           in: path
-          description: playoff round (PP, QF, SF, FF)
+          description: 'playoff round (PP, QF, SF, FF)'
           required: true
           type: string
         - name: homeTeam
@@ -2367,7 +2477,7 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/gameday/{gameday}/games:
+  '/seasons/{endYear}/gameday/{gameday}/games':
     get:
       tags:
         - Standard
@@ -2446,12 +2556,12 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/gameday/{gameday}/games/{homeTeam}:
+  '/seasons/{endYear}/gameday/{gameday}/games/{homeTeam}':
     get:
       tags:
         - Standard
         - Game
-      summary: gets single game by season, gameday, home team
+      summary: 'gets single game by season, gameday, home team'
       description: |
         By passing in the appropriate options, you can find a single season game
       operationId: getSeasonGame
@@ -2566,7 +2676,7 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/gameday/{gameday}/games/{homeTeam}/tipps:
+  '/seasons/{endYear}/gameday/{gameday}/games/{homeTeam}/tipps':
     get:
       tags:
         - Standard
@@ -2659,15 +2769,16 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/gameday/{gameday}/games/{homeTeam}/tipps/{tipper}:
+  '/seasons/{endYear}/gameday/{gameday}/games/{homeTeam}/tipps/{tipper}':
     get:
       tags:
         - Standard
         - Game
         - Game Tipp
-      summary: gets single season game tipp 
-      description: |
-        By passing in the appropriate options, you can find a single season game tipp
+      summary: gets single season game tipp
+      description: >
+        By passing in the appropriate options, you can find a single season game
+        tipp
       operationId: getSeasonGameTipp
       produces:
         - application/json
@@ -2797,7 +2908,7 @@ paths:
           description: Not Authorized
         '404':
           description: not found
-  /seasons/{endYear}/gameday/{gameday}/games/{homeTeam}/result:
+  '/seasons/{endYear}/gameday/{gameday}/games/{homeTeam}/result':
     get:
       tags:
         - Standard
@@ -2970,24 +3081,26 @@ paths:
           description: not found
 definitions:
   Game:
-    required:
-      - puckdrop
-      - season
     properties:
-      id:
-        $ref: '#/definitions/GameId'
       season:
         $ref: '#/definitions/SeasonYear'
-      puckdrop:
-        $ref: '#/definitions/Timestamp'
       gameday:
         type: integer
-        example: 34
-        minimum: 1
         maximum: 52
-      home:
+        minimum: 1
+        example: 10
+      round:
+        $ref: '#/definitions/Round'
+      number:
+        type: integer
+        maximum: 7
+        minimum: 1
+        example: 2
+      homeTeam:
         $ref: '#/definitions/TeamId'
-      away:
+      puckdrop:
+        $ref: '#/definitions/Timestamp'
+      awayTeam:
         $ref: '#/definitions/TeamId'
       playoffFlag:
         type: boolean
@@ -3003,16 +3116,27 @@ definitions:
       away: MAN
       adlerFlag: true
       season: '2019'
-      id: 'd290f1ee-6c54-4b01-90e6-d701748f0851'
       _self: 'https://api.example.com/season(2018)'
       gameday: 34
       home: MAN
   GameResult:
-    required:
-      - game
     properties:
-      game:
-        $ref: '#/definitions/GameId'
+      season:
+        $ref: '#/definitions/SeasonYear'
+      gameday:
+        type: integer
+        maximum: 52
+        minimum: 1
+        example: 10
+      round:
+        $ref: '#/definitions/Round'
+      number:
+        type: integer
+        maximum: 7
+        minimum: 1
+        example: 2
+      homeTeam:
+        $ref: '#/definitions/TeamId'
       home:
         type: integer
         example: 4
@@ -3030,18 +3154,28 @@ definitions:
       _self:
         $ref: '#/definitions/selfURL'
     example:
-      game: 'd290f1ee-6c54-4b01-90e6-d701748f0851'
       away: 1
       _self: 'https://api.example.com/season(2018)'
       home: 4
       gameEnd: REG
   GameTipp:
-    required:
-      - game
-      - tipper
     properties:
-      game:
-        $ref: '#/definitions/GameId'
+      season:
+        $ref: '#/definitions/SeasonYear'
+      gameday:
+        type: integer
+        maximum: 52
+        minimum: 1
+        example: 10
+      round:
+        $ref: '#/definitions/Round'
+      number:
+        type: integer
+        maximum: 7
+        minimum: 1
+        example: 2
+      homeTeam:
+        $ref: '#/definitions/TeamId'
       tipper:
         $ref: '#/definitions/TipperId'
       home:
@@ -3066,17 +3200,14 @@ definitions:
       _self:
         $ref: '#/definitions/selfURL'
     example:
-      game: d290f1ee-6c54-4b01-90e6-d701748f0851
       away: 1
-      savedAt: 2018-08-29T09:12:33.001Z
+      savedAt: '2018-08-29T09:12:33.001Z'
       comment: comment
       _self: 'https://api.example.com/season(2018)'
       tipper: mettler1938
       home: 4
       gameEnd: REG
   Season:
-    required:
-      - endYear
     properties:
       endYear:
         $ref: '#/definitions/SeasonYear'
@@ -3089,12 +3220,9 @@ definitions:
     example:
       _self: 'https://api.example.com/season(2018)'
       endYear: '2019'
-      startDate: 2018-06-01T00:00:00.000Z
-      mainRoundEnd: 2018-06-01T00:00:00.000Z
+      startDate: '2018-06-01T00:00:00.000Z'
+      mainRoundEnd: '2018-06-01T00:00:00.000Z'
   SeasonResult:
-    required:
-      - champion
-      - season
     properties:
       season:
         $ref: '#/definitions/SeasonYear'
@@ -3122,9 +3250,6 @@ definitions:
       _self: 'https://api.example.com/season(2018)'
       champion: MAN
   SeasonTipp:
-    required:
-      - season
-      - tipper
     properties:
       tipper:
         $ref: '#/definitions/TipperId'
@@ -3152,31 +3277,19 @@ definitions:
       mainRound: MAN
       season: '2019'
       adlerWLratio: 76%
-      savedAt: 2018-08-29T09:12:33.001Z
+      savedAt: '2018-08-29T09:12:33.001Z'
       adlerFinish: 1
-      _self: 'https://api.example.com/season(2018)'
       tipper: mettler1938
       champion: MAN
   PlayoffSeries:
-    required:
-      - round
-      - season
     properties:
-      id:
-        $ref: '#/definitions/PlayoffSeriesId'
       season:
         $ref: '#/definitions/SeasonYear'
       round:
-        type: string
-        example: SF
-        enum:
-          - PP
-          - QF
-          - SF
-          - FF
-      home:
+        $ref: '#/definitions/Round'
+      homeTeam:
         $ref: '#/definitions/TeamId'
-      away:
+      awayTeam:
         $ref: '#/definitions/TeamId'
       puckdrop:
         $ref: '#/definitions/Timestamp'
@@ -3184,19 +3297,19 @@ definitions:
         $ref: '#/definitions/selfURL'
     example:
       away: MAN
-      puckdrop: 2018-08-29T09:12:33.001Z
+      puckdrop: '2018-08-29T09:12:33.001Z'
       round: SF
       season: '2019'
-      id: d290f1ee-6c54-4b01-90e6-d701748f0851
       _self: 'https://api.example.com/season(2018)'
       home: MAN
   PlayoffTipp:
-    required:
-      - series
-      - tipper
     properties:
-      series:
-        $ref: '#/definitions/PlayoffSeriesId'
+      season:
+        $ref: '#/definitions/SeasonYear'
+      round:
+        $ref: '#/definitions/Round'
+      homeTeam:
+        $ref: '#/definitions/TeamId'
       tipper:
         $ref: '#/definitions/TipperId'
       home:
@@ -3214,11 +3327,13 @@ definitions:
       _self:
         $ref: '#/definitions/selfURL'
   SeriesResult:
-    required:
-      - series
     properties:
-      series:
-        $ref: '#/definitions/PlayoffSeriesId'
+      season:
+        $ref: '#/definitions/SeasonYear'
+      round: 
+        $ref: '#/definitions/Round'
+      homeTeam:
+        $ref: '#/definitions/TeamId'
       home:
         type: integer
         example: 4
@@ -3232,9 +3347,6 @@ definitions:
       _self:
         $ref: '#/definitions/selfURL'
   Admin:
-    required:
-      - from
-      - id
     properties:
       id:
         $ref: '#/definitions/TipperId'
@@ -3245,9 +3357,6 @@ definitions:
       _self:
         $ref: '#/definitions/selfURL'
   Tipper:
-    required:
-      - id
-      - name
     properties:
       id:
         $ref: '#/definitions/TipperId'
@@ -3258,9 +3367,6 @@ definitions:
       _self:
         $ref: '#/definitions/selfURL'
   Team:
-    required:
-      - fullName
-      - id
     properties:
       id:
         $ref: '#/definitions/TeamId'
@@ -3277,6 +3383,55 @@ definitions:
         example: false
       _self:
         $ref: '#/definitions/selfURL'
+  Standing:
+    properties:
+      tipper: 
+        $ref: '#/definitions/TipperId'
+      season:
+        $ref: '#/definitions/SeasonYear'
+      gameday:
+        type: integer
+        example: 11
+        maximum: 52
+        minimum: 1
+        description: only valid for gameday standings
+      victory:
+        type: boolean
+        description: only valid for gameday standings
+      points:
+        type: integer
+        minimum: 0
+        maximum: 42
+        example: 21
+      adlerPoints:
+        type: integer
+        minimum: 0
+        maximum: 6
+        example: 4
+        description: only valid for gameday standings
+      jackpots:
+        type: integer
+        minimum: 0
+        maximum: 7
+        example: 2
+        description: only valid for gameday and playoff standings
+      personalBest:
+        type: integer
+        minimum: 0
+        example: 21
+        description: only valid for gameday standings
+      missedTipps:
+        type: integer
+        minimum: 0
+        maximum: 7
+      seriesPoints:
+        type: integer
+        minimum: 0
+        description: only valid for total standings
+      mainRoundPoints:
+        type: integer
+        minimum: 0
+        description: only valid for total standings
   AuthReq:
     properties:
       authStuff:
@@ -3289,6 +3444,14 @@ definitions:
         type: string
     example:
       jwtToken: jwtToken
+  Round:
+    type: string
+    example: SF
+    enum:
+      - PP
+      - QF
+      - SF
+      - FF
   SeasonYear:
     type: integer
     example: '2019'
@@ -3298,23 +3461,15 @@ definitions:
   TeamId:
     type: string
     example: MAN
-  GameId:
-    type: string
-    format: uuid
-    example: d290f1ee-6c54-4b01-90e6-d701748f0851
-  PlayoffSeriesId:
-    type: string
-    format: uuid
-    example: d290f1ee-6c54-4b01-90e6-d701748f0851
   Date:
     type: string
     format: date
-    example: 2018-06-01T00:00:00.000Z
+    example: '2018-06-01T00:00:00.000Z'
   Timestamp:
     type: string
     format: date-time
     description: Time the tipp was saved - relevant for evaluation of eligibility
-    example: 2018-08-29T09:12:33.001Z
+    example: '2018-08-29T09:12:33.001Z'
   selfURL:
     type: string
     format: url
